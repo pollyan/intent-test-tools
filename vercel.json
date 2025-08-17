@@ -1,29 +1,14 @@
 {
-  "version": 2,
-  "builds": [
+  "rewrites": [
     {
-      "src": "api/index.py",
-      "use": "@vercel/python",
-      "config": {
-        "maxLambdaSize": "50mb"
-      }
-    }
-  ],
-  "routes": [
-    {
-      "src": "/static/(.*)",
-      "dest": "/web_gui/static/$1"
+      "source": "/static/(.*)",
+      "destination": "/web_gui/static/$1"
     },
     {
-      "src": "/(.*)",
-      "dest": "/api/index.py"
+      "source": "/(.*)",
+      "destination": "/api/index.py"
     }
   ],
-  "env": {
-    "FLASK_ENV": "production",
-    "DATABASE_URL": "",
-    "VERCEL": "1"
-  },
   "functions": {
     "api/index.py": {
       "maxDuration": 30
