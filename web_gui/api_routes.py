@@ -12,21 +12,90 @@ logger = logging.getLogger(__name__)
 
 # 导入统一错误处理工具
 try:
-    from utils.error_handler import (
-        api_error_handler, db_transaction_handler, validate_json_data,
-        format_success_response, ValidationError, NotFoundError, DatabaseError
-    )
-except ImportError:
     from web_gui.utils.error_handler import (
         api_error_handler, db_transaction_handler, validate_json_data,
         format_success_response, ValidationError, NotFoundError, DatabaseError
     )
+except ImportError:
+    # 如果错误处理器不存在，定义基本的装饰器和异常类
+    def api_error_handler(func):
+        """简单的错误处理装饰器"""
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except Exception as e:
+                return jsonify({
+                    'code': 500,
+                    'message': f'内部错误: {str(e)}'
+                }), 500
+        wrapper.__name__ = func.__name__
+        return wrapper
+    
+    def db_transaction_handler(db_instance):
+        """简单的数据库事务处理装饰器"""
+        def decorator(func):
+            def wrapper(*args, **kwargs):
+                try:
+                    result = func(*args, **kwargs)
+                    db_instance.session.commit()
+                    return result
+                except Exception as e:
+                    db_instance.session.rollback()
+                    raise
+            wrapper.__name__ = func.__name__
+            return wrapper
+        return decorator
+    
+    def validate_json_data(required_fields=None):
+        """简单的JSON数据验证装饰器"""
+        def decorator(func):
+            def wrapper(*args, **kwargs):
+                data = request.get_json()
+                if not data:
+                    return jsonify({
+                        'code': 400,
+                        'message': '缺少JSON数据'
+                    }), 400
+                if required_fields:
+                    for field in required_fields:
+                        if field not in data:
+                            return jsonify({
+                                'code': 400,
+                                'message': f'缺少必要字段: {field}'
+                            }), 400
+                return func(*args, **kwargs)
+            wrapper.__name__ = func.__name__
+            return wrapper
+        return decorator
+    
+    def format_success_response(data=None, message='操作成功'):
+        """格式化成功响应"""
+        return {'code': 201, 'data': data, 'message': message}
+    
+    class ValidationError(Exception):
+        def __init__(self, message, field=None):
+            self.message = message
+            self.field = field
+            super().__init__(message)
+    
+    class NotFoundError(Exception):
+        def __init__(self, resource_type, resource_id=None):
+            if resource_id:
+                self.message = f'{resource_type}不存在: {resource_id}'
+            else:
+                self.message = f'{resource_type}不存在'
+            super().__init__(self.message)
+    
+    class DatabaseError(Exception):
+        def __init__(self, message):
+            self.message = message
+            super().__init__(message)
 
 # 修复Serverless环境的导入路径
 try:
-    from models import db, TestCase, ExecutionHistory, StepExecution, Template
-except ImportError:
     from web_gui.models import db, TestCase, ExecutionHistory, StepExecution, Template
+except ImportError:
+    from models import db, TestCase, ExecutionHistory, StepExecution, Template
 
 # 创建蓝图
 api_bp = Blueprint('api', __name__, url_prefix='/api')

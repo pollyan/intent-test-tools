@@ -1191,18 +1191,29 @@ try:
 
     print("✅ 数据库配置加载成功")
 
-    # 导入模型和路由
+    # 导入模型
     from web_gui.models import db
-    from web_gui.api_routes import api_bp
-
-    print("✅ 模型和路由导入成功")
+    print("✅ 模型导入成功")
 
     # 初始化数据库
     db.init_app(app)
+    print("✅ 数据库初始化成功")
 
-    # 注册API路由  
+    # 在应用上下文中导入和注册API路由
+    with app.app_context():
+        # 确保数据库表存在
+        try:
+            db.create_all()
+            print("✅ 数据库表创建成功")
+        except Exception as e:
+            print(f"⚠️ 数据库表创建失败: {e}")
+        
+        # 导入API路由（在应用上下文中）
+        from web_gui.api_routes import api_bp
+        print("✅ API路由模块导入成功")
+
+    # 注册API路由
     app.register_blueprint(api_bp)
-
     print("✅ API路由注册成功")
 
     # 添加CORS支持
@@ -1212,27 +1223,11 @@ try:
         print("✅ CORS配置成功")
     except ImportError:
         print("⚠️ CORS模块未找到，跳过")
-    
-    # 在应用启动时创建数据库表
-    try:
-        with app.app_context():
-            db.create_all()
-            print("✅ 数据库表创建成功")
-    except Exception as e:
-        print(f"⚠️ 数据库表创建失败: {e}")
-
-    # API状态检查
-    @app.route('/api/status')
-    def api_status():
-        return jsonify({
-            'status': 'ok',
-            'message': 'API is working',
-            'database': 'connected',
-            'environment': 'Vercel Serverless'
-        })
 
 except Exception as e:
     print(f"⚠️ API功能加载失败: {e}")
+    import traceback
+    traceback.print_exc()
 
 # 数据库初始化API
 @app.route('/api/init-db', methods=['POST'])
@@ -1722,16 +1717,6 @@ def execute_single_step(ai, step, step_index):
 print("✅ API功能加载成功")
 
 # API路由已在上面的try块中注册
-
-# 基本的API状态端点
-@app.route('/api/status')
-def api_status():
-    return jsonify({
-        'status': 'ok' if DATABASE_INITIALIZED else 'partial',
-        'database': 'ok' if DATABASE_INITIALIZED else 'error',
-        'api_routes': 'available' if DATABASE_INITIALIZED else 'limited',
-        'message': '系统运行正常' if DATABASE_INITIALIZED else '数据库未初始化'
-    })
 
 # Vercel需要的应用对象
 application = app
