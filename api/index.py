@@ -761,8 +761,8 @@ REM Step 3: Install dependencies
 echo.
 echo [3/5] Installing dependencies...
 
-if exist "node_modules\@playwright\test" (
-    if exist "node_modules\axios" (
+if exist "node_modules\\@playwright\\test" (
+    if exist "node_modules\\axios" (
         echo + Dependencies already exist, skipping installation
     ) else (
         echo ^ Installing npm dependencies...
@@ -1721,29 +1721,16 @@ if DATABASE_INITIALIZED:
         print("✅ API路由注册成功")
     except Exception as e:
         print(f"⚠️ API路由注册失败: {e}")
-        # 注册基本的API端点
-        @app.route('/api/status')
-        def api_status():
-            return jsonify({
-                'status': 'partial',
-                'database': 'ok' if DATABASE_INITIALIZED else 'error',
-                'api_routes': 'limited',
-                'message': '数据库已连接，但部分API功能不可用'
-            })
 
-except Exception as e:
-    print(f"⚠️ API功能加载失败: {e}")
-    import traceback
-    traceback.print_exc()
-
-    # 简单的错误API
-    @app.route('/api/status')
-    def api_status_error():
-        return jsonify({
-            'status': 'error',
-            'message': f'API加载失败: {str(e)}',
-            'suggestion': '请检查环境变量和依赖配置'
-        }), 500
+# 基本的API状态端点
+@app.route('/api/status')
+def api_status():
+    return jsonify({
+        'status': 'ok' if DATABASE_INITIALIZED else 'partial',
+        'database': 'ok' if DATABASE_INITIALIZED else 'error',
+        'api_routes': 'available' if DATABASE_INITIALIZED else 'limited',
+        'message': '系统运行正常' if DATABASE_INITIALIZED else '数据库未初始化'
+    })
 
 # Vercel需要的应用对象
 application = app
