@@ -1200,7 +1200,7 @@ try:
     # 初始化数据库
     db.init_app(app)
 
-    # 注册API路由
+    # 注册API路由  
     app.register_blueprint(api_bp)
 
     print("✅ API路由注册成功")
@@ -1721,14 +1721,7 @@ def execute_single_step(ai, step, step_index):
 
 print("✅ API功能加载成功")
 
-# 注册API路由
-if DATABASE_INITIALIZED:
-    try:
-        from web_gui.api import register_api_routes
-        register_api_routes(app)
-        print("✅ API路由注册成功")
-    except Exception as e:
-        print(f"⚠️ API路由注册失败: {e}")
+# API路由已在上面的try块中注册
 
 # 基本的API状态端点
 @app.route('/api/status')
