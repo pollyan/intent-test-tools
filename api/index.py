@@ -1231,487 +1231,495 @@ try:
             'environment': 'Vercel Serverless'
         })
 
-    # 数据库初始化API
-    @app.route('/api/init-db', methods=['POST'])
-    def init_database():
-        try:
-            # 创建所有表
-            db.create_all()
+except Exception as e:
+    print(f"⚠️ API功能加载失败: {e}")
 
-            # 检查是否有示例数据
-            from web_gui.models import TestCase, Template
+# 数据库初始化API
+@app.route('/api/init-db', methods=['POST'])
+def init_database():
+    try:
+        # 创建所有表
+        db.create_all()
 
-            test_count = TestCase.query.count()
-            template_count = Template.query.count()
+        # 检查是否有示例数据
+        from web_gui.models import TestCase, Template
 
-            # 如果没有数据，创建示例数据
-            if test_count == 0:
-                # 简单的测试用例
-                simple_testcase = TestCase(
-                    name='简单页面访问测试',
-                    description='测试访问百度首页',
-                    steps='[{"action":"navigate","params":{"url":"https://www.baidu.com"},"description":"访问百度首页"}]',
-                    category='基础功能',
-                    priority=1,
-                    created_by='system'
-                )
-                db.session.add(simple_testcase)
+        test_count = TestCase.query.count()
+        template_count = Template.query.count()
 
-                # 复杂的测试用例
-                complex_testcase = TestCase(
-                    name='百度搜索测试',
-                    description='测试百度搜索功能',
-                    steps='[{"action":"navigate","params":{"url":"https://www.baidu.com"},"description":"访问百度首页"},{"action":"ai_input","params":{"text":"AI测试","locate":"搜索框"},"description":"输入搜索关键词"}]',
-                    category='搜索功能',
-                    priority=2,
-                    created_by='system'
-                )
-                db.session.add(complex_testcase)
+        # 如果没有数据，创建示例数据
+        if test_count == 0:
+            # 简单的测试用例
+            simple_testcase = TestCase(
+                name='简单页面访问测试',
+                description='测试访问百度首页',
+                steps='[{"action":"navigate","params":{"url":"https://www.baidu.com"},"description":"访问百度首页"}]',
+                category='基础功能',
+                priority=1,
+                created_by='system'
+            )
+            db.session.add(simple_testcase)
 
-            if template_count == 0:
-                sample_template = Template(
-                    name='搜索功能模板',
-                    description='通用搜索功能测试模板',
-                    category='搜索',
-                    steps_template='[{"action":"navigate","params":{"url":"{{search_url}}"},"description":"访问搜索页面"}]',
-                    parameters='{"search_url":{"type":"string","description":"搜索页面URL"}}',
-                    created_by='system',
-                    is_public=True
-                )
-                db.session.add(sample_template)
+            # 复杂的测试用例
+            complex_testcase = TestCase(
+                name='百度搜索测试',
+                description='测试百度搜索功能',
+                steps='[{"action":"navigate","params":{"url":"https://www.baidu.com"},"description":"访问百度首页"},{"action":"ai_input","params":{"text":"AI测试","locate":"搜索框"},"description":"输入搜索关键词"}]',
+                category='搜索功能',
+                priority=2,
+                created_by='system'
+            )
+            db.session.add(complex_testcase)
 
-            # 创建示例执行记录
-            from web_gui.models import ExecutionHistory
-            execution_count = ExecutionHistory.query.count()
+        if template_count == 0:
+            sample_template = Template(
+                name='搜索功能模板',
+                description='通用搜索功能测试模板',
+                category='搜索',
+                steps_template='[{"action":"navigate","params":{"url":"{{search_url}}"},"description":"访问搜索页面"}]',
+                parameters='{"search_url":{"type":"string","description":"搜索页面URL"}}',
+                created_by='system',
+                is_public=True
+            )
+            db.session.add(sample_template)
+
+        # 创建示例执行记录
+        from web_gui.models import ExecutionHistory
+        execution_count = ExecutionHistory.query.count()
+        
+        if execution_count == 0:
+            from datetime import datetime, timedelta
+            import uuid
             
-            if execution_count == 0:
-                from datetime import datetime, timedelta
-                import uuid
+            # 获取刚创建的测试用例
+            testcase = TestCase.query.first()
+            
+            if testcase:
+                base_time = datetime.utcnow() - timedelta(days=5)
                 
-                # 获取刚创建的测试用例
-                testcase = TestCase.query.first()
+                # 创建一些成功的执行记录
+                for i in range(8):
+                    execution_id = str(uuid.uuid4())
+                    execution = ExecutionHistory(
+                        execution_id=execution_id,
+                        test_case_id=testcase.id,
+                        status='success',
+                        mode='headless',
+                        start_time=base_time + timedelta(hours=i*3),
+                        end_time=base_time + timedelta(hours=i*3, minutes=2),
+                        duration=120,
+                        steps_total=3,
+                        steps_passed=3,
+                        steps_failed=0,
+                        executed_by='system'
+                    )
+                    db.session.add(execution)
                 
-                if testcase:
-                    base_time = datetime.utcnow() - timedelta(days=5)
-                    
-                    # 创建一些成功的执行记录
-                    for i in range(8):
-                        execution_id = str(uuid.uuid4())
-                        execution = ExecutionHistory(
-                            execution_id=execution_id,
-                            test_case_id=testcase.id,
-                            status='success',
-                            mode='headless',
-                            start_time=base_time + timedelta(hours=i*3),
-                            end_time=base_time + timedelta(hours=i*3, minutes=2),
-                            duration=120,
-                            steps_total=3,
-                            steps_passed=3,
-                            steps_failed=0,
-                            executed_by='system'
-                        )
-                        db.session.add(execution)
-                    
-                    # 创建一些失败的执行记录
-                    for i in range(3):
-                        execution_id = str(uuid.uuid4())
-                        execution = ExecutionHistory(
-                            execution_id=execution_id,
-                            test_case_id=testcase.id,
-                            status='failed',
-                            mode='headless',
-                            start_time=base_time + timedelta(hours=i*8),
-                            end_time=base_time + timedelta(hours=i*8, minutes=1),
-                            duration=60,
-                            steps_total=3,
-                            steps_passed=1,
-                            steps_failed=2,
-                            error_message='模拟执行失败',
-                            executed_by='system'
-                        )
-                        db.session.add(execution)
-                    
-                    print("✅ 创建示例执行记录")
+                # 创建一些失败的执行记录
+                for i in range(3):
+                    execution_id = str(uuid.uuid4())
+                    execution = ExecutionHistory(
+                        execution_id=execution_id,
+                        test_case_id=testcase.id,
+                        status='failed',
+                        mode='headless',
+                        start_time=base_time + timedelta(hours=i*8),
+                        end_time=base_time + timedelta(hours=i*8, minutes=1),
+                        duration=60,
+                        steps_total=3,
+                        steps_passed=1,
+                        steps_failed=2,
+                        error_message='模拟执行失败',
+                        executed_by='system'
+                    )
+                    db.session.add(execution)
+                
+                print("✅ 创建示例执行记录")
 
-            db.session.commit()
+        db.session.commit()
+
+        return jsonify({
+            'status': 'success',
+            'message': '数据库初始化成功',
+            'data': {
+                'test_cases': TestCase.query.count(),
+                'templates': Template.query.count(),
+                'executions': ExecutionHistory.query.count()
+            }
+        })
+
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'数据库初始化失败: {str(e)}'
+        }), 500
+
+# 数据库连接测试
+@app.route('/api/db-test')
+def db_test():
+    try:
+        database_url = os.getenv('DATABASE_URL')
+        if not database_url:
+            return jsonify({
+                'status': 'error',
+                'message': 'DATABASE_URL环境变量未设置'
+            }), 500
+
+        # 显示连接信息（隐藏密码）
+        from urllib.parse import urlparse
+        parsed = urlparse(database_url)
+
+        connection_info = {
+            'scheme': parsed.scheme,
+            'hostname': parsed.hostname,
+            'port': parsed.port,
+            'database': parsed.path.lstrip('/') if parsed.path else None,
+            'username': parsed.username,
+            'password_set': bool(parsed.password),
+            'original_url': database_url[:50] + '...' if len(database_url) > 50 else database_url
+        }
+
+        # 尝试多种连接方式
+        connection_attempts = []
+
+        # 方法1: 使用应用的数据库引擎
+        try:
+            with db.engine.connect() as conn:
+                result = conn.execute(db.text("SELECT 1 as test"))
+                test_result = result.fetchone()
 
             return jsonify({
                 'status': 'success',
-                'message': '数据库初始化成功',
-                'data': {
-                    'test_cases': TestCase.query.count(),
-                    'templates': Template.query.count(),
-                    'executions': ExecutionHistory.query.count()
-                }
-            })
-
-        except Exception as e:
-            return jsonify({
-                'status': 'error',
-                'message': f'数据库初始化失败: {str(e)}'
-            }), 500
-
-    # 数据库连接测试
-    @app.route('/api/db-test')
-    def db_test():
-        try:
-            database_url = os.getenv('DATABASE_URL')
-            if not database_url:
-                return jsonify({
-                    'status': 'error',
-                    'message': 'DATABASE_URL环境变量未设置'
-                }), 500
-
-            # 显示连接信息（隐藏密码）
-            from urllib.parse import urlparse
-            parsed = urlparse(database_url)
-
-            connection_info = {
-                'scheme': parsed.scheme,
-                'hostname': parsed.hostname,
-                'port': parsed.port,
-                'database': parsed.path.lstrip('/') if parsed.path else None,
-                'username': parsed.username,
-                'password_set': bool(parsed.password),
-                'original_url': database_url[:50] + '...' if len(database_url) > 50 else database_url
-            }
-
-            # 尝试多种连接方式
-            connection_attempts = []
-
-            # 方法1: 使用应用的数据库引擎
-            try:
-                with db.engine.connect() as conn:
-                    result = conn.execute(db.text("SELECT 1 as test"))
-                    test_result = result.fetchone()
-
-                return jsonify({
-                    'status': 'success',
-                    'message': '数据库连接成功 (方法1: 应用引擎)',
-                    'connection_info': connection_info,
-                    'test_query': 'SELECT 1 执行成功'
-                })
-            except Exception as e1:
-                connection_attempts.append(f"方法1失败: {str(e1)}")
-
-            # 方法2: 直接使用psycopg2连接
-            try:
-                import psycopg2
-                conn = psycopg2.connect(database_url)
-                cursor = conn.cursor()
-                cursor.execute("SELECT 1")
-                result = cursor.fetchone()
-                cursor.close()
-                conn.close()
-
-                return jsonify({
-                    'status': 'success',
-                    'message': '数据库连接成功 (方法2: 直接连接)',
-                    'connection_info': connection_info,
-                    'test_query': 'SELECT 1 执行成功'
-                })
-            except Exception as e2:
-                connection_attempts.append(f"方法2失败: {str(e2)}")
-
-            # 方法3: 尝试连接池端口
-            try:
-                pool_url = database_url.replace(':5432/', ':6543/')
-                import psycopg2
-                conn = psycopg2.connect(pool_url)
-                cursor = conn.cursor()
-                cursor.execute("SELECT 1")
-                result = cursor.fetchone()
-                cursor.close()
-                conn.close()
-
-                return jsonify({
-                    'status': 'success',
-                    'message': '数据库连接成功 (方法3: 连接池)',
-                    'connection_info': {**connection_info, 'used_pool_port': True},
-                    'test_query': 'SELECT 1 执行成功',
-                    'suggestion': '建议更新DATABASE_URL使用端口6543'
-                })
-            except Exception as e3:
-                connection_attempts.append(f"方法3失败: {str(e3)}")
-
-            return jsonify({
-                'status': 'error',
-                'message': '所有连接方法都失败了',
+                'message': '数据库连接成功 (方法1: 应用引擎)',
                 'connection_info': connection_info,
-                'attempts': connection_attempts,
-                'suggestion': '请检查Supabase项目状态，或尝试使用连接池URL (端口6543)'
-            }), 500
+                'test_query': 'SELECT 1 执行成功'
+            })
+        except Exception as e1:
+            connection_attempts.append(f"方法1失败: {str(e1)}")
 
-        except Exception as e:
-            return jsonify({
-                'status': 'error',
-                'message': f'测试过程出错: {str(e)}',
-                'connection_info': connection_info if 'connection_info' in locals() else None
-            }), 500
-
-    # 智能执行API - 支持Chrome桥接、云端和本地模式
-    @app.route('/api/executions/start', methods=['POST'])
-    def start_execution():
+        # 方法2: 直接使用psycopg2连接
         try:
-            from flask import request
-            import threading
-            import uuid
-            from datetime import datetime
+            import psycopg2
+            conn = psycopg2.connect(database_url)
+            cursor = conn.cursor()
+            cursor.execute("SELECT 1")
+            result = cursor.fetchone()
+            cursor.close()
+            conn.close()
 
-            data = request.get_json() or {}
-            testcase_id = data.get('testcase_id')
-            mode = data.get('mode', 'headless')  # headless 或 browser
-            execution_type = data.get('execution_type', 'local-proxy')  # local-proxy
+            return jsonify({
+                'status': 'success',
+                'message': '数据库连接成功 (方法2: 直接连接)',
+                'connection_info': connection_info,
+                'test_query': 'SELECT 1 执行成功'
+            })
+        except Exception as e2:
+            connection_attempts.append(f"方法2失败: {str(e2)}")
 
-            if not testcase_id:
-                return jsonify({
-                    'code': 400,
-                    'message': '缺少测试用例ID'
-                }), 400
+        # 方法3: 尝试连接池端口
+        try:
+            pool_url = database_url.replace(':5432/', ':6543/')
+            import psycopg2
+            conn = psycopg2.connect(pool_url)
+            cursor = conn.cursor()
+            cursor.execute("SELECT 1")
+            result = cursor.fetchone()
+            cursor.close()
+            conn.close()
 
-            # 获取测试用例
-            from web_gui.models import TestCase
-            testcase = TestCase.query.get(testcase_id)
-            if not testcase:
-                return jsonify({
-                    'code': 404,
-                    'message': '测试用例不存在'
-                }), 404
+            return jsonify({
+                'status': 'success',
+                'message': '数据库连接成功 (方法3: 连接池)',
+                'connection_info': {**connection_info, 'used_pool_port': True},
+                'test_query': 'SELECT 1 执行成功',
+                'suggestion': '建议更新DATABASE_URL使用端口6543'
+            })
+        except Exception as e3:
+            connection_attempts.append(f"方法3失败: {str(e3)}")
 
-            # 生成执行ID
-            execution_id = str(uuid.uuid4())
+        return jsonify({
+            'status': 'error',
+            'message': '所有连接方法都失败了',
+            'connection_info': connection_info,
+            'attempts': connection_attempts,
+            'suggestion': '请检查Supabase项目状态，或尝试使用连接池URL (端口6543)'
+        }), 500
 
-            # 创建执行记录
-            execution_record = {
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'测试过程出错: {str(e)}',
+            'connection_info': connection_info if 'connection_info' in locals() else None
+        }), 500
+
+# 智能执行API - 支持Chrome桥接、云端和本地模式
+@app.route('/api/executions/start', methods=['POST'])
+def start_execution():
+    try:
+        from flask import request
+        import threading
+        import uuid
+        from datetime import datetime
+
+        data = request.get_json() or {}
+        testcase_id = data.get('testcase_id')
+        mode = data.get('mode', 'headless')  # headless 或 browser
+        execution_type = data.get('execution_type', 'local-proxy')  # local-proxy
+
+        if not testcase_id:
+            return jsonify({
+                'code': 400,
+                'message': '缺少测试用例ID'
+            }), 400
+
+        # 获取测试用例
+        from web_gui.models import TestCase
+        testcase = TestCase.query.get(testcase_id)
+        if not testcase:
+            return jsonify({
+                'code': 404,
+                'message': '测试用例不存在'
+            }), 404
+
+        # 生成执行ID
+        execution_id = str(uuid.uuid4())
+
+        # 创建执行记录
+        execution_record = {
+            'execution_id': execution_id,
+            'testcase_id': testcase_id,
+            'testcase_name': testcase.name,
+            'mode': mode,
+            'execution_type': execution_type,
+            'status': 'running',
+            'start_time': datetime.utcnow().isoformat(),
+            'steps': [],
+            'current_step': 0,
+            'total_steps': len(json.loads(testcase.steps)) if testcase.steps else 0,
+            'screenshots': []
+        }
+
+        # 存储执行记录（简单的内存存储）
+        if not hasattr(app, 'executions'):
+            app.executions = {}
+        app.executions[execution_id] = execution_record
+
+        # 智能选择执行方式
+        selected_type, execution_message = select_execution_type(execution_type, testcase.name)
+        execution_record['execution_type'] = selected_type
+
+        # 启动本地代理执行线程
+        thread = threading.Thread(
+            target=execute_testcase_background,
+            args=(execution_id, testcase, mode)
+        )
+
+        thread.daemon = True
+        thread.start()
+
+        return jsonify({
+            'code': 200,
+            'message': '本地代理执行已启动',
+            'data': {
                 'execution_id': execution_id,
                 'testcase_id': testcase_id,
                 'testcase_name': testcase.name,
                 'mode': mode,
-                'execution_type': execution_type,
+                'execution_type': selected_type,
                 'status': 'running',
-                'start_time': datetime.utcnow().isoformat(),
-                'steps': [],
-                'current_step': 0,
-                'total_steps': len(json.loads(testcase.steps)) if testcase.steps else 0,
-                'screenshots': []
+                'message': execution_message
             }
-
-            # 存储执行记录（简单的内存存储）
-            if not hasattr(app, 'executions'):
-                app.executions = {}
-            app.executions[execution_id] = execution_record
-
-            # 智能选择执行方式
-            selected_type, execution_message = select_execution_type(execution_type, testcase.name)
-            execution_record['execution_type'] = selected_type
-
-            # 启动本地代理执行线程
-            thread = threading.Thread(
-                target=execute_testcase_background,
-                args=(execution_id, testcase, mode)
-            )
-
-            thread.daemon = True
-            thread.start()
-
-            return jsonify({
-                'code': 200,
-                'message': '本地代理执行已启动',
-                'data': {
-                    'execution_id': execution_id,
-                    'testcase_id': testcase_id,
-                    'testcase_name': testcase.name,
-                    'mode': mode,
-                    'execution_type': selected_type,
-                    'status': 'running',
-                    'message': execution_message
-                }
-            })
-        except Exception as e:
-            return jsonify({
-                'code': 500,
-                'message': f'启动执行失败: {str(e)}'
-            }), 500
-
-    def select_execution_type(requested_type: str, testcase_name: str) -> tuple:
-        """选择执行类型"""
-        return 'local-proxy', f'正在通过本地代理执行测试用例: {testcase_name}'
+        })
+    except Exception as e:
+        return jsonify({
+            'code': 500,
+            'message': f'启动执行失败: {str(e)}'
+        }), 500
 
 
-    def execute_testcase_background(execution_id, testcase, mode):
-        """后台执行测试用例"""
-        try:
-            from datetime import datetime
-            import json
-            import time
+# 模块级别的辅助函数
+def select_execution_type(requested_type: str, testcase_name: str) -> tuple:
+    """选择执行类型"""
+    return 'local-proxy', f'正在通过本地代理执行测试用例: {testcase_name}'
 
-            # 获取执行记录
-            execution = app.executions[execution_id]
 
-            # 解析测试步骤
-            steps = json.loads(testcase.steps) if testcase.steps else []
-            execution['total_steps'] = len(steps)
-            execution['steps'] = [{'status': 'pending', 'description': step.get('description', '')} for step in steps]
-            
-            # 创建数据库执行记录
-            db_execution = None
-            try:
-                from web_gui.models import ExecutionHistory, db
-                with app.app_context():
-                    # 确保数据库表已创建
-                    db.create_all()
-                    
-                    db_execution = ExecutionHistory(
-                        execution_id=execution_id,
-                        test_case_id=testcase.id,
-                        status='running',
-                        mode=mode,
-                        start_time=datetime.utcnow(),
-                        steps_total=len(steps),
-                        steps_passed=0,
-                        steps_failed=0,
-                        executed_by='system'
-                    )
-                    db.session.add(db_execution)
-                    db.session.commit()
-                    print(f"✅ 创建执行记录: {execution_id}")
-            except Exception as db_error:
-                print(f"⚠️ 创建执行记录失败: {db_error}")
-                print(f"⚠️ 数据库错误详情: {type(db_error).__name__}: {str(db_error)}")
-                # 即使数据库失败，也继续执行，只是统计数据会丢失
-                pass
+def execute_testcase_background(execution_id, testcase, mode):
+    """后台执行测试用例"""
+    try:
+        from datetime import datetime
+        import json
+        import time
 
-            # 尝试导入AI执行引擎
-            try:
-                import sys
-                import os
-                sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-                from midscene_python import MidSceneAI
+        # 获取执行记录
+        execution = app.executions[execution_id]
 
-                # 初始化AI
-                ai = MidSceneAI()
-                ai.set_browser_mode(mode)
-
-                execution['message'] = f'AI引擎已初始化，开始执行 {len(steps)} 个步骤'
-
-                # 执行每个步骤
-                for i, step in enumerate(steps):
-                    execution['current_step'] = i + 1
-                    execution['steps'][i]['status'] = 'running'
-
-                    try:
-                        # 执行步骤
-                        result = execute_single_step(ai, step, i)
-                        execution['steps'][i]['status'] = 'success'
-                        execution['steps'][i]['result'] = result
-
-                        # 截图
-                        screenshot_path = ai.take_screenshot(f"{execution_id}_step_{i+1}")
-                        execution['screenshots'].append({
-                            'step': i + 1,
-                            'path': screenshot_path,
-                            'description': step.get('description', f'步骤 {i+1}')
-                        })
-
-                    except Exception as step_error:
-                        execution['steps'][i]['status'] = 'failed'
-                        execution['steps'][i]['error'] = str(step_error)
-                        print(f"步骤 {i+1} 执行失败: {step_error}")
-                        # 继续执行下一步骤
-
-                # 执行完成
-                execution['status'] = 'completed'
-                execution['end_time'] = datetime.utcnow().isoformat()
-                execution['message'] = '测试执行完成'
-                
-                # 更新数据库记录
-                update_execution_status(execution_id, 'success', execution['steps'])
-
-            except ImportError as e:
-                # AI引擎不可用，使用模拟执行
-                execution['message'] = 'AI引擎不可用，使用模拟执行'
-
-                for i, step in enumerate(steps):
-                    execution['current_step'] = i + 1
-                    execution['steps'][i]['status'] = 'running'
-                    time.sleep(2)  # 模拟执行时间
-                    execution['steps'][i]['status'] = 'success'
-                    execution['steps'][i]['result'] = f"模拟执行: {step.get('description', '')}"
-
-                execution['status'] = 'completed'
-                execution['end_time'] = datetime.utcnow().isoformat()
-                execution['message'] = '模拟执行完成'
-                
-                # 更新数据库记录
-                update_execution_status(execution_id, 'success', execution['steps'], '模拟执行')
-
-        except Exception as e:
-            execution['status'] = 'failed'
-            execution['error'] = str(e)
-            execution['end_time'] = datetime.utcnow().isoformat()
-            print(f"执行失败: {e}")
-            
-            # 更新数据库记录为失败
-            update_execution_status(execution_id, 'failed', execution.get('steps', []), error_message=str(e))
-
-    def update_execution_status(execution_id, status, steps, note='', error_message=None):
-        """统一的数据库状态更新函数"""
+        # 解析测试步骤
+        steps = json.loads(testcase.steps) if testcase.steps else []
+        execution['total_steps'] = len(steps)
+        execution['steps'] = [{'status': 'pending', 'description': step.get('description', '')} for step in steps]
+        
+        # 创建数据库执行记录
+        db_execution = None
         try:
             from web_gui.models import ExecutionHistory, db
             with app.app_context():
-                db_execution = ExecutionHistory.query.filter_by(execution_id=execution_id).first()
-                if db_execution:
-                    # 开始事务
-                    db_execution.status = status
-                    db_execution.end_time = datetime.utcnow()
-                    db_execution.steps_passed = sum(1 for step in steps if step.get('status') == 'success')
-                    db_execution.steps_failed = sum(1 for step in steps if step.get('status') == 'failed')
-                    db_execution.duration = int((datetime.utcnow() - db_execution.start_time).total_seconds())
-                    
-                    if error_message:
-                        db_execution.error_message = error_message
-                    
-                    db.session.commit()
-                    print(f"✅ 更新执行记录: {execution_id} -> {status} {note}")
-                else:
-                    print(f"⚠️ 执行记录不存在: {execution_id}")
+                # 确保数据库表已创建
+                db.create_all()
+                
+                db_execution = ExecutionHistory(
+                    execution_id=execution_id,
+                    test_case_id=testcase.id,
+                    status='running',
+                    mode=mode,
+                    start_time=datetime.utcnow(),
+                    steps_total=len(steps),
+                    steps_passed=0,
+                    steps_failed=0,
+                    executed_by='system'
+                )
+                db.session.add(db_execution)
+                db.session.commit()
+                print(f"✅ 创建执行记录: {execution_id}")
         except Exception as db_error:
-            print(f"⚠️ 更新执行记录失败: {db_error}")
+            print(f"⚠️ 创建执行记录失败: {db_error}")
             print(f"⚠️ 数据库错误详情: {type(db_error).__name__}: {str(db_error)}")
-            try:
-                db.session.rollback()
-            except:
-                pass
+            # 即使数据库失败，也继续执行，只是统计数据会丢失
+            pass
 
-    def execute_single_step(ai, step, step_index):
-        """执行单个测试步骤"""
-        action = step.get('action')
-        params = step.get('params', {})
-        description = step.get('description', action)
+        # 尝试导入AI执行引擎
+        try:
+            import sys
+            import os
+            sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+            from midscene_python import MidSceneAI
 
-        print(f"执行步骤 {step_index + 1}: {description}")
+            # 初始化AI
+            ai = MidSceneAI()
+            ai.set_browser_mode(mode)
 
-        if action == 'navigate':
-            url = params.get('url')
-            return ai.goto(url)
-        elif action == 'ai_input':
-            text = params.get('text')
-            locate = params.get('locate')
-            return ai.ai_input(text, locate)
-        elif action == 'ai_tap':
-            prompt = params.get('prompt')
-            return ai.ai_tap(prompt)
-        elif action == 'ai_assert':
-            prompt = params.get('prompt')
-            return ai.ai_assert(prompt)
-        elif action == 'ai_wait_for':
-            prompt = params.get('prompt')
-            timeout = params.get('timeout', 10000)
-            return ai.ai_wait_for(prompt, timeout)
-        else:
-            raise ValueError(f"不支持的操作类型: {action}")
+            execution['message'] = f'AI引擎已初始化，开始执行 {len(steps)} 个步骤'
 
-    print("✅ API功能加载成功")
+            # 执行每个步骤
+            for i, step in enumerate(steps):
+                execution['current_step'] = i + 1
+                execution['steps'][i]['status'] = 'running'
+
+                try:
+                    # 执行步骤
+                    result = execute_single_step(ai, step, i)
+                    execution['steps'][i]['status'] = 'success'
+                    execution['steps'][i]['result'] = result
+
+                    # 截图
+                    screenshot_path = ai.take_screenshot(f"{execution_id}_step_{i+1}")
+                    execution['screenshots'].append({
+                        'step': i + 1,
+                        'path': screenshot_path,
+                        'description': step.get('description', f'步骤 {i+1}')
+                    })
+
+                except Exception as step_error:
+                    execution['steps'][i]['status'] = 'failed'
+                    execution['steps'][i]['error'] = str(step_error)
+                    print(f"步骤 {i+1} 执行失败: {step_error}")
+                    # 继续执行下一步骤
+
+            # 执行完成
+            execution['status'] = 'completed'
+            execution['end_time'] = datetime.utcnow().isoformat()
+            execution['message'] = '测试执行完成'
+            
+            # 更新数据库记录
+            update_execution_status(execution_id, 'success', execution['steps'])
+
+        except ImportError as e:
+            # AI引擎不可用，使用模拟执行
+            execution['message'] = 'AI引擎不可用，使用模拟执行'
+
+            for i, step in enumerate(steps):
+                execution['current_step'] = i + 1
+                execution['steps'][i]['status'] = 'running'
+                time.sleep(2)  # 模拟执行时间
+                execution['steps'][i]['status'] = 'success'
+                execution['steps'][i]['result'] = f"模拟执行: {step.get('description', '')}"
+
+            execution['status'] = 'completed'
+            execution['end_time'] = datetime.utcnow().isoformat()
+            execution['message'] = '模拟执行完成'
+            
+            # 更新数据库记录
+            update_execution_status(execution_id, 'success', execution['steps'], '模拟执行')
+
+    except Exception as e:
+        execution['status'] = 'failed'
+        execution['error'] = str(e)
+        execution['end_time'] = datetime.utcnow().isoformat()
+        print(f"执行失败: {e}")
+        
+        # 更新数据库记录为失败
+        update_execution_status(execution_id, 'failed', execution.get('steps', []), error_message=str(e))
+
+
+def update_execution_status(execution_id, status, steps, note='', error_message=None):
+    """统一的数据库状态更新函数"""
+    try:
+        from web_gui.models import ExecutionHistory, db
+        with app.app_context():
+            db_execution = ExecutionHistory.query.filter_by(execution_id=execution_id).first()
+            if db_execution:
+                # 开始事务
+                db_execution.status = status
+                db_execution.end_time = datetime.utcnow()
+                db_execution.steps_passed = sum(1 for step in steps if step.get('status') == 'success')
+                db_execution.steps_failed = sum(1 for step in steps if step.get('status') == 'failed')
+                db_execution.duration = int((datetime.utcnow() - db_execution.start_time).total_seconds())
+                
+                if error_message:
+                    db_execution.error_message = error_message
+                
+                db.session.commit()
+                print(f"✅ 更新执行记录: {execution_id} -> {status} {note}")
+            else:
+                print(f"⚠️ 执行记录不存在: {execution_id}")
+    except Exception as db_error:
+        print(f"⚠️ 更新执行记录失败: {db_error}")
+        print(f"⚠️ 数据库错误详情: {type(db_error).__name__}: {str(db_error)}")
+        try:
+            db.session.rollback()
+        except:
+            pass
+
+
+def execute_single_step(ai, step, step_index):
+    """执行单个测试步骤"""
+    action = step.get('action')
+    params = step.get('params', {})
+    description = step.get('description', action)
+
+    print(f"执行步骤 {step_index + 1}: {description}")
+
+    if action == 'navigate':
+        url = params.get('url')
+        return ai.goto(url)
+    elif action == 'ai_input':
+        text = params.get('text')
+        locate = params.get('locate')
+        return ai.ai_input(text, locate)
+    elif action == 'ai_tap':
+        prompt = params.get('prompt')
+        return ai.ai_tap(prompt)
+    elif action == 'ai_assert':
+        prompt = params.get('prompt')
+        return ai.ai_assert(prompt)
+    elif action == 'ai_wait_for':
+        prompt = params.get('prompt')
+        timeout = params.get('timeout', 10000)
+        return ai.ai_wait_for(prompt, timeout)
+    else:
+        raise ValueError(f"不支持的操作类型: {action}")
+
+
+print("✅ API功能加载成功")
 
 # 注册API路由
 if DATABASE_INITIALIZED:
