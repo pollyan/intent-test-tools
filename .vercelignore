@@ -1,0 +1,76 @@
+# Vercel部署忽略文件
+# 优化部署包大小
+
+# 开发工具和测试文件
+tests/
+pytest.ini
+.pytest_cache/
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+.coverage
+htmlcov/
+
+# 文档和示例
+docs/
+*.md
+!README.md
+
+# 开发环境文件
+.env
+.env.local
+.env.development
+.DS_Store
+.vscode/
+.idea/
+
+# 日志文件
+*.log
+logs/
+
+# 数据库文件（本地开发用）
+*.db
+*.sqlite
+*.sqlite3
+
+# Node.js模块（保留package.json）
+node_modules/
+
+# Python虚拟环境
+venv/
+env/
+.env/
+
+# Git相关
+.git/
+.gitignore
+
+# 构建文件
+build/
+dist/intent-test-proxy/
+dist/intent-test-proxy.zip
+
+# 缓存文件
+.cache/
+.temp/
+temp/
+
+# 备份文件
+*.backup
+*.bak
+
+# 项目特定的大文件
+midscene_framework/
+migrations/
+scripts/setup_dev_env.py
+scripts/quality_check.py
+scripts/test_*.py
+
+# Claude和Cursor配置
+.claude/
+.cursor/
+.bmad-core/
+
+# 最小化预览文件（已内联到模板）
+minimal-preview/

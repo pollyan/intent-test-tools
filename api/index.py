@@ -1,6 +1,6 @@
 """
 Vercel入口文件 - 意图测试平台
-专为Serverless环境优化，避免复杂的模块导入
+专为Serverless环境优化，支持SQLite数据库自动初始化
 """
 
 import sys
@@ -12,6 +12,9 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
 
+# 设置Vercel环境标识
+os.environ['VERCEL'] = '1'
+
 # 创建Flask应用，配置模板和静态文件路径
 template_dir = os.path.join(parent_dir, 'web_gui', 'templates')
 static_dir = os.path.join(parent_dir, 'web_gui', 'static')
@@ -21,8 +24,27 @@ app = Flask(__name__,
            static_folder=static_dir,
            static_url_path='/static')
 
-# 基本配置
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
+# 配置数据库
+try:
+    from web_gui.database_config import get_flask_config
+    from web_gui.models import db
+    from web_gui.services.database_init_service import init_database
+    
+    # 应用数据库配置
+    app.config.update(get_flask_config())
+    
+    # 初始化数据库
+    db.init_app(app)
+    
+    # 在首次请求时自动初始化数据库
+    with app.app_context():
+        init_database(app)
+    
+    DATABASE_INITIALIZED = True
+    print("✅ SQLite数据库初始化成功")
+except Exception as e:
+    DATABASE_INITIALIZED = False
+    print(f"❌ 数据库初始化失败: {e}")
 
 # 添加时区格式化过滤器
 @app.template_filter('utc_to_local')
@@ -117,8 +139,12 @@ def home():
     except Exception as e:
         print(f"⚠️ 无法加载完整界面: {e}")
         # 备用方案：简单状态页面
-        database_url = os.getenv('DATABASE_URL', 'Not configured')
-        database_status = 'PostgreSQL (Supabase)' if database_url.startswith('postgresql://') else 'Not configured'
+        if DATABASE_INITIALIZED:
+            from web_gui.database_config import db_config
+            info = db_config.get_connection_info()
+            database_status = f"{info['database_type']} ({info['database']})"
+        else:
+            database_status = '数据库初始化失败'
         return render_template_string(HTML_TEMPLATE, database_status=database_status)
 
 @app.route('/health')
@@ -1686,6 +1712,24 @@ try:
             raise ValueError(f"不支持的操作类型: {action}")
 
     print("✅ API功能加载成功")
+
+# 注册API路由
+if DATABASE_INITIALIZED:
+    try:
+        from web_gui.api import register_api_routes
+        register_api_routes(app)
+        print("✅ API路由注册成功")
+    except Exception as e:
+        print(f"⚠️ API路由注册失败: {e}")
+        # 注册基本的API端点
+        @app.route('/api/status')
+        def api_status():
+            return jsonify({
+                'status': 'partial',
+                'database': 'ok' if DATABASE_INITIALIZED else 'error',
+                'api_routes': 'limited',
+                'message': '数据库已连接，但部分API功能不可用'
+            })
 
 except Exception as e:
     print(f"⚠️ API功能加载失败: {e}")
