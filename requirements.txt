@@ -10,9 +10,7 @@ flask-cors>=4.0.0
 python-socketio>=5.0.0
 # 数据库支持
 flask-sqlalchemy>=3.0.0
-psycopg2-binary>=2.9.0
-# Supabase客户端
-supabase>=1.0.0
+# SQLite数据库 (内置支持，无需额外依赖)
 # 开发工具
 black>=22.0.0
 flake8>=4.0.0

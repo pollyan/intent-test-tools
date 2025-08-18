@@ -73,11 +73,47 @@ def validate_step_data(data, is_update=False):
 
 # ==================== 测试用例CRUD操作 ====================
 
+@api_bp.route('/testcases/debug', methods=['GET'])
+@log_api_call
+def debug_testcases():
+    """调试测试用例API的Flask上下文问题"""
+    from flask import current_app, has_app_context, has_request_context
+    
+    debug_info = {
+        'has_app_context': has_app_context(),
+        'has_request_context': has_request_context(),
+        'current_app_id': id(current_app),
+        'db_id': id(db),
+        'testcase_model_id': id(TestCase),
+    }
+    
+    try:
+        debug_info['sqlalchemy_in_extensions'] = 'sqlalchemy' in current_app.extensions
+        if 'sqlalchemy' in current_app.extensions:
+            ext_db = current_app.extensions['sqlalchemy']
+            debug_info['extension_db_id'] = id(ext_db)
+            debug_info['db_same_as_extension'] = ext_db is db
+    except Exception as e:
+        debug_info['extension_error'] = str(e)
+    
+    try:
+        debug_info['testcase_count'] = TestCase.query.count()
+    except Exception as e:
+        debug_info['query_error'] = str(e)
+    
+    return jsonify({
+        'code': 200,
+        'message': '调试信息获取成功',
+        'data': debug_info
+    })
+
 @api_bp.route('/testcases', methods=['GET'])
 @log_api_call
 def get_testcases() -> Response:
-    """获取测试用例列表（使用SQLAlchemy）"""
+    """获取测试用例列表（使用Flask应用扩展中的SQLAlchemy实例）"""
     try:
+        from flask import current_app
+        
         params = get_pagination_params()
         
         page = params['page']
@@ -85,14 +121,15 @@ def get_testcases() -> Response:
         category = params.get('category')
         search = params.get('search')
         
-        # 构建查询
-        query = TestCase.query.filter_by(is_active=True)
+        # 使用Flask应用扩展中的SQLAlchemy实例
+        app_db = current_app.extensions['sqlalchemy']
+        query = app_db.session.query(TestCase).filter_by(is_active=True)
         
         # 分类过滤
         if category:
             query = query.filter(TestCase.category == category)
             
-        # 搜索过滤
+        # 搜索过滤  
         if search:
             search_pattern = f'%{search}%'
             query = query.filter(
@@ -101,7 +138,7 @@ def get_testcases() -> Response:
                 (TestCase.tags.ilike(search_pattern))
             )
         
-        # 排序和分页
+        # 排序
         query = query.order_by(TestCase.updated_at.desc())
         
         # 获取总数

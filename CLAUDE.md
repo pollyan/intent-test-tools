@@ -1,89 +1,25 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+此文件为 Claude Code (claude.ai/code) 在该代码库中工作时提供指导。
 
-## Communication Guidelines
+## 沟通准则
 
-**Language**: Always respond in Chinese (中文) when working with this project. All communication, explanations, and documentation should be in Chinese unless specifically requested otherwise.
+**语言**：在此项目中始终使用中文回应，除非明确要求使用其他语言。所有沟通、解释和文档都应使用中文。
 
-## Overview
+## 项目概述
 
-This is the Intent Test Framework - an AI-driven web automation testing platform that provides complete WebUI interface for test case management, execution monitoring, and result analysis. The system uses MidSceneJS for AI-powered visual testing and supports natural language test descriptions.
+Intent Test Framework - AI驱动的Web自动化测试平台，提供完整的WebUI界面用于测试用例管理、执行监控和结果分析。系统使用MidSceneJS进行AI驱动的视觉测试，支持自然语言测试描述。
 
-## Design System
+### 设计原则
+1. **极简主义**：简洁、专注的界面，无多余元素
+2. **纯文本**：纯文字按钮和界面，不使用图标或表情符号
+3. **一致排版**：系统字体，特定的字重和间距
+4. **中性配色**：主要色调使用灰色和白色
+5. **网格布局**：一致的网格系统进行内容组织
+6. **状态指示**：简单的彩色圆点表示状态
+7. **统一组件**：一致的按钮样式、表单元素和列表项
 
-### Minimal Design Reference
-The target design system is stored in `/Users/huian@thoughtworks.com/intent-test-framework/minimal-preview` directory. When implementing new features or modifying existing ones, **ALWAYS** reference these design files:
-
-- `minimal-preview/assets/css/minimal-style.css` - Core CSS framework
-- `minimal-preview/dashboard.html` - Dashboard page design
-- `minimal-preview/testcases.html` - Test cases management page design
-- `minimal-preview/execution.html` - Execution console design
-- `minimal-preview/reports.html` - Reports page design
-- `minimal-preview/index.html` - Main entry page design
-
-### Design Principles
-1. **Extreme Minimalism**: Clean, focused interfaces without unnecessary elements
-2. **No Icons**: Text-only buttons and interfaces, no emoji or symbol icons
-3. **Consistent Typography**: System fonts with specific weight and spacing
-4. **Neutral Colors**: Primary palette uses grays and whites
-5. **Grid Layouts**: Consistent grid systems for content organization
-6. **Status Indicators**: Simple colored dots for status representation
-7. **Unified Components**: Consistent button styles, form elements, and list items
-
-## Development Commands
-
-### Setup and Installation
-```bash
-# Setup development environment
-python scripts/setup_dev_env.py
-
-# Install Python dependencies
-pip install -r requirements.txt
-pip install -r web_gui/requirements.txt
-
-# Install Node.js dependencies  
-npm install
-
-# Setup environment variables
-cp .env.example .env
-# Edit .env with your AI API keys
-```
-
-### Running the Application
-```bash
-# Start MidScene server (AI engine)
-node midscene_server.js
-
-# Start Web GUI application
-python web_gui/run_enhanced.py
-
-# Alternative: Start enhanced web app
-python web_gui/app_enhanced.py
-```
-
-### Development Tools
-```bash
-# Run code quality check
-python scripts/quality_check.py
-
-# Run tests
-python -m pytest tests/ -v
-
-# Run specific test file
-python -m pytest tests/test_models.py -v
-
-# Run Node.js related tests
-npm test
-```
-
-### Local Proxy Server
-```bash
-# Start local proxy server for AI testing
-python start_midscene_server.py
-```
-
-## 🚀 本地测试调试环境启动方法
+## 始终使用下列脚本启动本地测试调试环境
 
 ### 标准启动流程
 
@@ -119,60 +55,6 @@ cp .env.local.template .env
 - 🔧 **执行控制台**: http://localhost:5001/execution
 - 📈 **测试报告**: http://localhost:5001/reports
 
-### 环境验证
-
-使用以下命令验证环境是否正常：
-
-```bash
-# 完整验证脚本
-echo "🎯 本地调试环境验证"
-echo "✅ Web界面: $(curl -s -w '%{http_code}' -o /dev/null 'http://localhost:5001/')"
-echo "✅ MidScene AI: $(curl -s -w '%{http_code}' -o /dev/null 'http://localhost:3001/health')"
-echo "✅ API端点: $(curl -s 'http://localhost:5001/api/testcases' | python3 -c 'import sys,json; data=json.load(sys.stdin); print(data.get("code", "Error"))')"
-```
-
-### 故障排除
-
-**常见问题及解决方案：**
-
-1. **端口被占用**
-   ```bash
-   # 检查端口占用
-   lsof -i :5001  # Web端口
-   lsof -i :3001  # AI服务端口
-   
-   # 停止冲突服务
-   ./scripts/dev-restart.sh
-   ```
-
-2. **数据库问题**
-   ```bash
-   # 重新初始化数据库
-   python3 scripts/init_db_fixed.py
-   ```
-
-3. **依赖问题**
-   ```bash
-   # 清理并重新安装依赖
-   rm -rf venv node_modules
-   ./scripts/dev-start.sh
-   ```
-
-4. **环境变量未加载**
-   ```bash
-   # 确保.env文件存在且配置正确
-   ls -la .env
-   cat .env | head -10
-   ```
-
-### 开发工作流建议
-
-1. **启动环境**: `./scripts/dev-start.sh` 或 `./scripts/dev-restart.sh`
-2. **进行开发**: 修改代码文件
-3. **重启服务**: `./scripts/dev-restart.sh` （应用更改）
-4. **运行测试**: `./scripts/dev-test.sh` （验证功能）
-5. **查看日志**: `./scripts/dev-logs.sh tail` （调试问题）
-
 ### 重要提示
 
 - ⚠️ **必须配置AI API密钥**：在`.env`文件中设置正确的API密钥才能使用AI功能
@@ -180,57 +62,56 @@ echo "✅ API端点: $(curl -s 'http://localhost:5001/api/testcases' | python3 -
 - ⚠️ **数据库自动备份**：每次重新初始化会备份现有数据库
 - ⚠️ **相对路径支持**：使用相对路径确保跨机器可移植性
 
-## Architecture
+## 系统架构
 
-### Core Components
+### 核心组件
 
-1. **Web GUI Layer** (`web_gui/`)
-   - `app.py` / `app_enhanced.py`: Main Flask application
-   - `api_routes.py`: API endpoints
-   - `models.py`: SQLAlchemy database models
-   - `templates/`: HTML templates
-   - `services/ai_enhanced_parser.py`: Natural language parsing
+1. **Web GUI层** (`web_gui/`)
+   - `app.py` / `app_enhanced.py`: 主Flask应用程序
+   - `api_routes.py`: API端点
+   - `models.py`: SQLAlchemy数据库模型
+   - `templates/`: HTML模板
+   - `services/ai_enhanced_parser.py`: 自然语言解析
 
-2. **AI Engine Layer**
-   - `midscene_python.py`: Python wrapper for MidSceneJS
-   - `midscene_server.js`: Node.js server for AI operations
-   - Integrates with MidSceneJS library for visual AI testing
+2. **AI引擎层**
+   - `midscene_python.py`: MidSceneJS的Python包装器
+   - `midscene_server.js`: AI操作的Node.js服务器
+   - 与MidSceneJS库集成进行视觉AI测试
 
-3. **Database Layer**
-   - PostgreSQL for production (Supabase)
-   - SQLite for development
-   - Models: TestCase, ExecutionHistory, Template, StepExecution
+3. **数据库层**
+   - 所有环境统一使用SQLite（开发和生产）
+   - 模型：TestCase、ExecutionHistory、Template、StepExecution
 
-4. **Cloud Deployment**
-   - `api/index.py`: Vercel serverless entry point
-   - `vercel.json`: Vercel deployment configuration
-   - Generates downloadable local proxy packages
+4. **云部署**
+   - `api/index.py`: Vercel无服务器入口点
+   - `vercel.json`: Vercel部署配置
+   - 生成可下载的本地代理包
 
-### Data Flow
+### 数据流
 
-1. **Test Creation**: User creates test cases via WebUI → Stored in database
-2. **Natural Language Processing**: AI parses natural language descriptions into structured steps
-3. **Test Execution**: MidSceneJS AI engine executes tests in browser
-4. **Real-time Updates**: WebSocket connections provide live execution status
-5. **Results Storage**: Execution results, screenshots, and logs stored in database
+1. **测试创建**: 用户通过WebUI创建测试用例 → 存储到数据库
+2. **自然语言处理**: AI将自然语言描述解析为结构化步骤
+3. **测试执行**: MidSceneJS AI引擎在浏览器中执行测试
+4. **实时更新**: WebSocket连接提供实时执行状态
+5. **结果存储**: 执行结果、截图和日志存储在数据库中
 
-### Key Architectural Patterns
+### 关键架构模式
 
-- **Microservices**: Flask web app + Node.js AI server
-- **Event-driven**: WebSocket for real-time communication
-- **AI-first**: All element interactions use AI vision models
-- **Hybrid deployment**: Local development + cloud distribution
+- **微服务**: Flask Web应用 + Node.js AI服务器
+- **事件驱动**: WebSocket实现实时通信
+- **AI优先**: 所有元素交互都使用AI视觉模型
+- **混合部署**: 本地开发 + 云端分发
 
-## Test Structure
+## 测试结构
 
-Test cases are structured as JSON with steps containing:
-- `action`: Type of action (navigate, ai_input, ai_tap, ai_assert, etc.)
-- `params`: Action-specific parameters
-- `description`: Human-readable step description
+测试用例以JSON格式结构化，步骤包含：
+- `action`: 动作类型（navigate, ai_input, ai_tap, ai_assert等）
+- `params`: 动作特定参数
+- `description`: 人类可读的步骤描述
 
-### Variable References
+### 变量引用
 
-The framework supports dynamic variable references using `${variable}` syntax:
+框架支持使用 `${variable}` 语法的动态变量引用：
 
 - **Basic variable**: `${product_name}`
 - **Object property**: `${product_info.name}`
@@ -300,7 +181,7 @@ OPENAI_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
 MIDSCENE_MODEL_NAME=qwen-vl-max-latest
 
 # Database Configuration  
-DATABASE_URL=postgresql://user:pass@host:port/db
+DATABASE_URL=sqlite:///data/app.db
 
 # Application Settings
 DEBUG=false
@@ -511,7 +392,7 @@ ALWAYS maintain the extreme minimalist design philosophy.
 ### 具体实施要求
 
 #### 数据访问层设计
-- **禁止**在API控制器中直接编写psycopg2连接代码
+- **禁止**在API控制器中直接编写数据库连接代码
 - **禁止**在多个地方重复相同的数据库连接逻辑
 - **必须**使用统一的数据库服务层（DatabaseService）
 - **必须**正确使用SQLAlchemy ORM和Flask应用上下文
@@ -548,244 +429,60 @@ ALWAYS maintain the extreme minimalist design philosophy.
 - 如果功能暂时无法实现，必须明确告知用户，不能用假数据欺骗
 - 用户要求看到真实数据时，必须确保连接的是真实的数据库并返回真实数据
 
-## 🧪 测试驱动开发（TDD）原则
+**绝对禁止违反架构原则的临时修复**：
+- ❌ **绕过ORM使用直接SQL**：即使遇到SQLAlchemy上下文问题，也不能用直接SQL绕过
+- ❌ **违反单一职责原则**：不能为了快速实现而在一个函数中混合多种职责
+- ❌ **忽略错误处理**：不能用简单的try-except来掩盖架构设计缺陷
+- ❌ **破坏依赖注入**：不能为了方便而硬编码依赖关系
+- ❌ **跳过测试驱动开发**：不能为了速度而跳过测试先行的开发流程
+
+**核心原则提醒**：
+- 🎯 **架构完整性** > 实现速度
+- 🎯 **长期可维护性** > 短期便利  
+- 🎯 **深入问题分析** > 表面修补
+- 🎯 **真实功能实现** > 临时解决方案
+
+## 🧪 测试驱动开发原则
 
 ### 核心TDD理念
 
-**🔴 测试优先原则**：任何新功能开发必须严格遵循TDD流程，先编写测试，再实现功能，确保代码质量和功能正确性。
+**🔴 测试优先原则**：任何新功能开发必须遵循TDD流程，先编写测试，再实现功能。
 
 ### TDD开发流程
 
-#### 标准TDD循环（Red-Green-Refactor）
+1. **🔴 Red**: 编写失败的测试用例
+2. **🟢 Green**: 实现最小可工作代码使测试通过
+3. **🔵 Refactor**: 重构优化代码质量
 
-1. **🔴 Red（编写失败的测试）**
-   ```bash
-   # 1. 编写测试用例，描述期望的功能行为
-   # 2. 运行测试，确认测试失败（因为功能还未实现）
-   pytest tests/unit/test_new_feature.py -v
-   ```
+### 测试策略
 
-2. **🟢 Green（实现最小可工作代码）**
-   ```bash
-   # 1. 编写最少的代码让测试通过
-   # 2. 运行测试确认通过
-   pytest tests/unit/test_new_feature.py -v
-   ```
+#### 单元测试 (`tests/unit/`)
+- 测试单个函数和类方法
+- 覆盖数据模型、服务层、工具函数
+- 覆盖率要求：≥ 80%
 
-3. **🔵 Refactor（重构优化代码）**
-   ```bash
-   # 1. 优化代码结构，提升代码质量
-   # 2. 运行所有测试确保无破坏性变更
-   pytest tests/ -v
-   ```
+#### API测试 (`tests/api/`)
+- 测试HTTP API端点完整流程
+- 覆盖状态码、参数验证、响应格式
+- 覆盖率要求：100%（所有API端点）
+---
 
-### 双层测试策略
+## ⚡ 重要指令提醒
 
-#### 1. 单元测试（Unit Tests）
-**目标**：测试单个函数、类方法的业务逻辑正确性
+### 🔴 开发时的核心原则
+1. **架构优先**：架构完整性 > 实现速度
+2. **真实功能**：真实实现 > 临时解决方案  
+3. **深入分析**：问题根因 > 表面修补
+4. **中文优先**：所有交流都使用中文
 
-**覆盖范围**：
-- 数据模型方法（`models.py`中的业务逻辑）
-- 服务层函数（`services/`目录下的业务服务）
-- 工具函数（`utils/`目录下的通用函数）
-- 数据验证逻辑
+### 🚫 绝对禁止
+- ❌ 返回假数据或模拟数据欺骗用户
+- ❌ 绕过架构原则的临时修复
+- ❌ 违反单一职责和DRY原则
+- ❌ 跳过测试驱动开发流程
 
-**测试位置**：`tests/unit/`
-```python
-# 示例：tests/unit/test_testcase_model.py
-def test_testcase_to_dict_with_stats():
-    """测试TestCase.to_dict方法包含统计信息"""
-    testcase = TestCase(name="测试用例", steps="[]")
-    result = testcase.to_dict(include_stats=True)
-    assert 'execution_count' in result
-    assert 'success_rate' in result
-```
-
-#### 2. API集成测试（API Tests）
-**目标**：测试HTTP API端点的完整请求-响应流程
-
-**覆盖范围**：
-- API端点的HTTP状态码
-- 请求参数验证
-- 响应数据格式
-- 错误处理机制
-- 数据库事务完整性
-
-**测试位置**：`tests/api/`
-```python
-# 示例：tests/api/test_testcase_api.py
-def test_create_testcase_success(client):
-    """测试创建测试用例API成功场景"""
-    data = {
-        "name": "新测试用例",
-        "description": "测试描述",
-        "steps": [{"action": "navigate", "params": {"url": "https://example.com"}}]
-    }
-    response = client.post('/api/testcases', json=data)
-    assert response.status_code == 201
-    assert response.json['code'] == 201
-    assert response.json['data']['name'] == "新测试用例"
-```
-
-### TDD实施规范
-
-#### 新功能开发流程
-
-1. **需求分析和测试规划**
-   ```bash
-   # 1. 分析功能需求，确定测试场景
-   # 2. 创建测试文件和测试用例框架
-   touch tests/unit/test_new_service.py
-   touch tests/api/test_new_api.py
-   ```
-
-2. **编写单元测试**
-   ```python
-   # 先编写单元测试，覆盖核心业务逻辑
-   def test_new_service_basic_functionality():
-       # 测试服务层基础功能
-       pass
-   
-   def test_new_service_error_handling():
-       # 测试异常情况处理
-       pass
-   ```
-
-3. **编写API测试**
-   ```python
-   # 编写API级别的集成测试
-   def test_new_api_endpoint_success():
-       # 测试API成功场景
-       pass
-   
-   def test_new_api_endpoint_validation():
-       # 测试API参数验证
-       pass
-   ```
-
-4. **实现功能代码**
-   ```python
-   # 按照测试期望实现最小可工作代码
-   # 先让单元测试通过，再让API测试通过
-   ```
-
-5. **运行回归测试**
-   ```bash
-   # 确保新功能不破坏现有功能
-   pytest tests/ -v --cov=web_gui --cov-report=html
-   ```
-
-#### 修改现有功能流程
-
-1. **先增加测试覆盖**
-   ```bash
-   # 为现有功能补充测试用例
-   pytest tests/unit/test_existing_feature.py -v
-   ```
-
-2. **修改实现代码**
-   ```python
-   # 在测试保护下进行修改
-   ```
-
-3. **验证测试通过**
-   ```bash
-   # 确保所有相关测试通过
-   pytest tests/ -k "existing_feature" -v
-   ```
-
-### 测试命令规范
-
-#### 日常开发测试命令
-```bash
-# 运行所有单元测试
-pytest tests/unit/ -v
-
-# 运行所有API测试  
-pytest tests/api/ -v
-
-# 运行特定功能的测试
-pytest tests/ -k "testcase" -v
-
-# 运行测试并生成覆盖率报告
-pytest tests/ -v --cov=web_gui --cov-report=html --cov-report=term
-
-# 运行测试并显示缺失的覆盖行
-pytest tests/ -v --cov=web_gui --cov-report=term-missing
-```
-
-#### CI/CD测试命令
-```bash
-# 完整的测试套件运行（提交前必须运行）
-pytest tests/ -v --cov=web_gui --cov-report=html --cov-fail-under=80
-
-# 快速冒烟测试
-pytest tests/unit/ tests/api/ -v --maxfail=5
-```
-
-### 测试质量标准
-
-#### 覆盖率要求
-- **单元测试覆盖率**：≥ 80%
-- **API测试覆盖率**：100%（所有API端点必须有测试）
-- **关键业务逻辑覆盖率**：≥ 95%
-
-#### 测试质量检查清单
-- [ ] 测试名称清晰描述测试场景
-- [ ] 测试用例包含正常场景和边界情况
-- [ ] 测试数据使用工厂模式或fixture
-- [ ] 测试相互独立，可以单独运行
-- [ ] 测试执行速度快（单元测试 < 1s，API测试 < 5s）
-- [ ] 测试失败时提供清晰的错误信息
-
-### 测试数据管理
-
-#### 测试数据原则
-- **隔离性**：每个测试使用独立的测试数据
-- **可重复性**：测试结果必须可重现
-- **清理性**：测试后自动清理测试数据
-
-#### 测试工具和库
-```python
-# 推荐测试工具栈
-pytest              # 测试框架
-pytest-cov          # 覆盖率插件
-pytest-mock         # Mock对象支持
-pytest-flask        # Flask测试支持
-factory-boy         # 测试数据工厂
-responses           # HTTP请求Mock
-```
-
-### TDD实施检查清单
-
-#### 开发新功能前检查
-- [ ] 是否已创建对应的单元测试文件？
-- [ ] 是否已创建对应的API测试文件？
-- [ ] 测试用例是否覆盖主要场景和边界情况？
-- [ ] 测试是否运行失败（Red阶段）？
-
-#### 功能实现后检查
-- [ ] 所有新增测试是否通过（Green阶段）？
-- [ ] 是否对代码进行了重构优化（Refactor阶段）？
-- [ ] 现有测试是否全部通过？
-- [ ] 代码覆盖率是否达到标准？
-
-#### 提交代码前检查
-- [ ] 运行完整测试套件无报错？
-- [ ] 测试覆盖率报告符合要求？
-- [ ] 新增的API端点都有对应测试？
-- [ ] 测试执行时间在可接受范围内？
-
-### 持续改进
-
-#### 测试债务管理
-- 定期识别缺失测试的代码区域
-- 优先为关键业务逻辑补充测试
-- 逐步提升整体测试覆盖率
-
-#### 测试效率优化
-- 使用并行测试执行提升速度
-- 优化测试数据库操作减少I/O时间
-- 合理使用Mock减少外部依赖
-
-通过严格遵循TDD原则，确保每一行代码都经过测试验证，从根本上提升代码质量和系统稳定性。
+### ✅ 必须遵循
+- ✅ 使用极简设计参考文件
+- ✅ 遵循TDD测试优先原则
+- ✅ 通过架构评审清单检查
+- ✅ 真实实现所有功能

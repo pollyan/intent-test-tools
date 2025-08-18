@@ -20,8 +20,11 @@ except ImportError:
         format_success_response, ValidationError, NotFoundError, DatabaseError
     )
 
-# 导入数据模型 - 统一使用相对导入
-from ..models import db, TestCase, ExecutionHistory, StepExecution, Template
+# 导入数据模型 - 支持相对导入和绝对导入
+try:
+    from ..models import db, TestCase, ExecutionHistory, StepExecution, Template
+except ImportError:
+    from web_gui.models import db, TestCase, ExecutionHistory, StepExecution, Template
 
 
 def get_pagination_params():

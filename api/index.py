@@ -1349,35 +1349,23 @@ def init_database():
             'message': f'数据库初始化失败: {str(e)}'
         }), 500
 
-# 数据库连接测试
+# SQLite数据库连接测试
 @app.route('/api/db-test')
 def db_test():
     try:
         database_url = os.getenv('DATABASE_URL')
         if not database_url:
-            return jsonify({
-                'status': 'error',
-                'message': 'DATABASE_URL环境变量未设置'
-            }), 500
+            # 使用默认SQLite配置
+            database_url = "sqlite:///data/app.db"
 
-        # 显示连接信息（隐藏密码）
-        from urllib.parse import urlparse
-        parsed = urlparse(database_url)
-
+        # 显示连接信息
         connection_info = {
-            'scheme': parsed.scheme,
-            'hostname': parsed.hostname,
-            'port': parsed.port,
-            'database': parsed.path.lstrip('/') if parsed.path else None,
-            'username': parsed.username,
-            'password_set': bool(parsed.password),
-            'original_url': database_url[:50] + '...' if len(database_url) > 50 else database_url
+            'database_type': 'SQLite',
+            'database_url': database_url,
+            'is_file_based': True
         }
 
-        # 尝试多种连接方式
-        connection_attempts = []
-
-        # 方法1: 使用应用的数据库引擎
+        # 测试SQLite连接
         try:
             with db.engine.connect() as conn:
                 result = conn.execute(db.text("SELECT 1 as test"))
@@ -1385,66 +1373,22 @@ def db_test():
 
             return jsonify({
                 'status': 'success',
-                'message': '数据库连接成功 (方法1: 应用引擎)',
+                'message': 'SQLite数据库连接成功',
                 'connection_info': connection_info,
                 'test_query': 'SELECT 1 执行成功'
             })
-        except Exception as e1:
-            connection_attempts.append(f"方法1失败: {str(e1)}")
-
-        # 方法2: 直接使用psycopg2连接
-        try:
-            import psycopg2
-            conn = psycopg2.connect(database_url)
-            cursor = conn.cursor()
-            cursor.execute("SELECT 1")
-            result = cursor.fetchone()
-            cursor.close()
-            conn.close()
-
+        except Exception as e:
             return jsonify({
-                'status': 'success',
-                'message': '数据库连接成功 (方法2: 直接连接)',
+                'status': 'error',
+                'message': f'SQLite连接失败: {str(e)}',
                 'connection_info': connection_info,
-                'test_query': 'SELECT 1 执行成功'
-            })
-        except Exception as e2:
-            connection_attempts.append(f"方法2失败: {str(e2)}")
-
-        # 方法3: 尝试连接池端口
-        try:
-            pool_url = database_url.replace(':5432/', ':6543/')
-            import psycopg2
-            conn = psycopg2.connect(pool_url)
-            cursor = conn.cursor()
-            cursor.execute("SELECT 1")
-            result = cursor.fetchone()
-            cursor.close()
-            conn.close()
-
-            return jsonify({
-                'status': 'success',
-                'message': '数据库连接成功 (方法3: 连接池)',
-                'connection_info': {**connection_info, 'used_pool_port': True},
-                'test_query': 'SELECT 1 执行成功',
-                'suggestion': '建议更新DATABASE_URL使用端口6543'
-            })
-        except Exception as e3:
-            connection_attempts.append(f"方法3失败: {str(e3)}")
-
-        return jsonify({
-            'status': 'error',
-            'message': '所有连接方法都失败了',
-            'connection_info': connection_info,
-            'attempts': connection_attempts,
-            'suggestion': '请检查Supabase项目状态，或尝试使用连接池URL (端口6543)'
-        }), 500
+                'suggestion': '请检查数据库文件路径和权限'
+            }), 500
 
     except Exception as e:
         return jsonify({
             'status': 'error',
-            'message': f'测试过程出错: {str(e)}',
-            'connection_info': connection_info if 'connection_info' in locals() else None
+            'message': f'数据库测试过程出错: {str(e)}'
         }), 500
 
 # 智能执行API - 支持Chrome桥接、云端和本地模式
