@@ -83,6 +83,103 @@ npm test
 python start_midscene_server.py
 ```
 
+## 🚀 本地测试调试环境启动方法
+
+### 标准启动流程
+
+**首次使用时：**
+```bash
+# 1. 配置环境变量（必须）
+cp .env.local.template .env
+# 编辑 .env 文件，填写您的AI API密钥
+
+# 2. 启动完整开发环境
+./scripts/dev-start.sh
+```
+
+**日常开发调试：**
+```bash
+# 快速重启服务（代码更改后）
+./scripts/dev-restart.sh
+
+# 运行测试和健康检查
+./scripts/dev-test.sh
+
+# 查看实时日志
+./scripts/dev-logs.sh tail
+```
+
+### 服务访问地址
+
+启动成功后可访问以下地址：
+
+- 🌐 **Web界面**: http://localhost:5001
+- 🤖 **AI服务**: http://localhost:3001  
+- 📊 **测试用例管理**: http://localhost:5001/testcases
+- 🔧 **执行控制台**: http://localhost:5001/execution
+- 📈 **测试报告**: http://localhost:5001/reports
+
+### 环境验证
+
+使用以下命令验证环境是否正常：
+
+```bash
+# 完整验证脚本
+echo "🎯 本地调试环境验证"
+echo "✅ Web界面: $(curl -s -w '%{http_code}' -o /dev/null 'http://localhost:5001/')"
+echo "✅ MidScene AI: $(curl -s -w '%{http_code}' -o /dev/null 'http://localhost:3001/health')"
+echo "✅ API端点: $(curl -s 'http://localhost:5001/api/testcases' | python3 -c 'import sys,json; data=json.load(sys.stdin); print(data.get("code", "Error"))')"
+```
+
+### 故障排除
+
+**常见问题及解决方案：**
+
+1. **端口被占用**
+   ```bash
+   # 检查端口占用
+   lsof -i :5001  # Web端口
+   lsof -i :3001  # AI服务端口
+   
+   # 停止冲突服务
+   ./scripts/dev-restart.sh
+   ```
+
+2. **数据库问题**
+   ```bash
+   # 重新初始化数据库
+   python3 scripts/init_db_fixed.py
+   ```
+
+3. **依赖问题**
+   ```bash
+   # 清理并重新安装依赖
+   rm -rf venv node_modules
+   ./scripts/dev-start.sh
+   ```
+
+4. **环境变量未加载**
+   ```bash
+   # 确保.env文件存在且配置正确
+   ls -la .env
+   cat .env | head -10
+   ```
+
+### 开发工作流建议
+
+1. **启动环境**: `./scripts/dev-start.sh` 或 `./scripts/dev-restart.sh`
+2. **进行开发**: 修改代码文件
+3. **重启服务**: `./scripts/dev-restart.sh` （应用更改）
+4. **运行测试**: `./scripts/dev-test.sh` （验证功能）
+5. **查看日志**: `./scripts/dev-logs.sh tail` （调试问题）
+
+### 重要提示
+
+- ⚠️ **必须配置AI API密钥**：在`.env`文件中设置正确的API密钥才能使用AI功能
+- ⚠️ **首次使用需要权限**：`chmod +x scripts/*.sh`
+- ⚠️ **数据库自动备份**：每次重新初始化会备份现有数据库
+- ⚠️ **相对路径支持**：使用相对路径确保跨机器可移植性
+
 ## Architecture
 
 ### Core Components

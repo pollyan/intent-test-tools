@@ -6,6 +6,21 @@ import os
 import sys
 import time
 import logging
+from pathlib import Path
+
+# 加载环境变量
+try:
+    from dotenv import load_dotenv
+    # 加载项目根目录的.env文件
+    project_root = Path(__file__).parent.parent
+    env_path = project_root / '.env'
+    if env_path.exists():
+        load_dotenv(env_path)
+        print(f"✅ 已加载环境变量: {env_path}")
+    else:
+        print(f"⚠️ .env文件不存在: {env_path}")
+except ImportError:
+    print("⚠️ python-dotenv未安装，无法加载.env文件")
 from flask import Flask, render_template, request, jsonify, send_from_directory
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
@@ -226,13 +241,13 @@ def create_app(test_config=None):
         if app.config.get('SQLALCHEMY_DATABASE_URI', '').startswith('sqlite'):
             app.config.pop('SQLALCHEMY_ENGINE_OPTIONS', None)
     else:
-        # 数据库配置 - 仅支持PostgreSQL
+        # 数据库配置 - 使用SQLite
         try:
             db_config = get_flask_config()
             app.config.update(db_config)
         except (ValueError, ImportError) as e:
             print(f"❌ 数据库配置失败: {e}")
-            print("请确保已正确配置PostgreSQL数据库连接。")
+            print("请确保已正确配置数据库连接。")
             sys.exit(1)
 
         # 打印数据库信息

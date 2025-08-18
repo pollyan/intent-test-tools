@@ -49,6 +49,16 @@ class DatabaseConfig:
             if database_url.startswith('postgres://'):
                 database_url = database_url.replace('postgres://', 'postgresql://', 1)
 
+            # 处理SQLite相对路径，转换为基于项目根目录的绝对路径
+            if database_url.startswith('sqlite:///') and not database_url.startswith('sqlite:////'):
+                # 提取相对路径部分
+                relative_path = database_url[10:]  # 去掉 'sqlite:///' 前缀
+                if not relative_path.startswith('/'):  # 确保是相对路径
+                    # 计算项目根目录（database_config.py的父目录的父目录）
+                    project_root = Path(__file__).parent.parent
+                    absolute_path = project_root / relative_path
+                    database_url = f"sqlite:///{absolute_path.absolute()}"
+
             # 为Serverless环境添加连接参数
             if os.getenv('VERCEL') == '1' and 'supabase.co' in database_url:
                 # 添加Supabase Serverless优化参数

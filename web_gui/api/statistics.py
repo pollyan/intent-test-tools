@@ -13,12 +13,8 @@ from .base import (
     log_api_call
 )
 
-# 直接从models导入，确保使用同一个db实例 - 强制使用绝对导入
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from models import db, TestCase, ExecutionHistory, StepExecution
+# 导入数据模型 - 统一使用相对导入
+from ..models import db, TestCase, ExecutionHistory, StepExecution
 
 
 # ==================== 报告API ====================
